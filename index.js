@@ -172,5 +172,155 @@ app.get("/publications/book/:book_name", (request, response) => {
     return response.json({ publications: getSpecificPublication });
 });
 
+/* 
+Route               /add/book/
+Description         add a new book to books(table)
+Access              PUBLIC
+Parameters          NONE
+Method              POST
+*/
+app.post("/add/book/", (request, response) => {
+    const { newBook } = request.body;
+    
+    database.books.push(newBook);
+
+    return response.json({ books: database.books, message: "new book added" });
+});
+
+/* 
+Route               /add/author/
+Description         add a new author to authors(table)
+Access              PUBLIC
+Parameters          None
+Method              POST
+*/
+app.post("/add/author/", (request, response) => {
+    const { newAuthor } = request.body;
+
+    database.authors.push(newAuthor);
+
+    return response.json({"Authors": database.authors, message: "new author added"});
+});
+
+/* 
+Route               /add/publication
+Description         add a new publication to publications(table)
+Access              PUBLIC
+Parameters          None
+Method              POST
+*/
+app.post("/add/publication/", (request, response) => {
+    const { newPublication } = request.body; 
+
+    database.publications.push(newPublication);
+
+    return response.json({"Publications": database.publications, message: "new publication added"});
+});
+
+/* 
+Route               /update/book/
+Description         updata title of a book
+Access              PUBLIC
+Parameters          isbn
+Method              PUT
+*/
+app.put("/update/book/:isbn", (request, response) => {
+    database.books.forEach((book) => {
+        if(book.ISBN === request.params.isbn){
+            book.title = request.body.bookTitle;
+            return;
+        }
+    }); 
+
+    return response.json({books: database.books});
+
+});
+
+/* 
+Route               /update/book/author
+Description         update author of a book
+Access              PUBLIC
+Parameters          isbn
+Method              PUT
+*/
+app.put("/update/book/author/:isbn", (request, response) => {
+    database.books.forEach((book) => {
+        if(request.params.isbn === book.ISBN){
+            book.authors.push(request.body.authorID);
+            return;
+        }
+    });
+
+    database.authors.forEach((author) => {
+        if(author.id == request.body.authorID){
+            author.books.push(request.params.isbn);
+            return;
+        }
+    });
+
+    return response.json({books: database.books, authors: database.authors, message: "new author was added"});
+});
+
+/* 
+Route               /update/author/
+Description         update name of a author
+Access              PUBLIC
+Parameters          id
+Method              PUT
+*/
+app.put("/update/author/:id", (request, response) => {
+    database.authors.forEach((author) => {
+        if(author.id === parseInt(request.params.id)){
+            author.name = request.body.authorName;
+            return;
+        }
+    }); 
+
+    return response.json({authors: database.authors});
+});
+
+/* 
+Route               /update/publication/
+Description         update name of a publication
+Access              PUBLIC
+Parameters          id
+Method              PUT
+*/
+app.put("/update/publication/:id", (request, response) => {
+    database.publications.forEach((publication) => {
+        if(publication.id === parseInt(request.params.id)){
+            publication.name = request.body.publicationName;
+            return;
+        }
+    }); 
+
+    return response.json({authors: database.publications});
+});
+
+/* 
+Route               /update/publication/book/
+Description         update book printed by a publication
+Access              PUBLIC
+Parameters          isbn
+Method              PUT
+*/
+app.put("/update/publication/book/:isbn", (request, response) => {
+    database.publications.forEach((publication) => {
+        if(publication.id === request.body.pubID){
+            publication.books.push(request.params.isbn);
+            return;
+        }
+    });
+
+    database.books.forEach((book) => {
+        if(book.ISBN === request.params.isbn){
+            book.publication = request.body.pubID;
+            return;
+        }
+    });
+
+    return response.json({publications: database.publications, books:database.books, message: "publication books updated"});
+});
+
 
 app.listen(3000, () => console.log("server running"));
