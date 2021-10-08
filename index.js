@@ -181,7 +181,7 @@ Method              POST
 */
 app.post("/add/book/", (request, response) => {
     const { newBook } = request.body;
-    
+
     database.books.push(newBook);
 
     return response.json({ books: database.books, message: "new book added" });
@@ -199,7 +199,7 @@ app.post("/add/author/", (request, response) => {
 
     database.authors.push(newAuthor);
 
-    return response.json({"Authors": database.authors, message: "new author added"});
+    return response.json({ "Authors": database.authors, message: "new author added" });
 });
 
 /* 
@@ -210,11 +210,11 @@ Parameters          None
 Method              POST
 */
 app.post("/add/publication/", (request, response) => {
-    const { newPublication } = request.body; 
+    const { newPublication } = request.body;
 
     database.publications.push(newPublication);
 
-    return response.json({"Publications": database.publications, message: "new publication added"});
+    return response.json({ "Publications": database.publications, message: "new publication added" });
 });
 
 /* 
@@ -226,13 +226,13 @@ Method              PUT
 */
 app.put("/update/book/:isbn", (request, response) => {
     database.books.forEach((book) => {
-        if(book.ISBN === request.params.isbn){
+        if (book.ISBN === request.params.isbn) {
             book.title = request.body.bookTitle;
             return;
         }
-    }); 
+    });
 
-    return response.json({books: database.books});
+    return response.json({ books: database.books });
 
 });
 
@@ -245,20 +245,20 @@ Method              PUT
 */
 app.put("/update/book/author/:isbn", (request, response) => {
     database.books.forEach((book) => {
-        if(request.params.isbn === book.ISBN){
+        if (request.params.isbn === book.ISBN) {
             book.authors.push(request.body.authorID);
             return;
         }
     });
 
     database.authors.forEach((author) => {
-        if(author.id == request.body.authorID){
+        if (author.id == request.body.authorID) {
             author.books.push(request.params.isbn);
             return;
         }
     });
 
-    return response.json({books: database.books, authors: database.authors, message: "new author was added"});
+    return response.json({ books: database.books, authors: database.authors, message: "new author was added" });
 });
 
 /* 
@@ -270,13 +270,13 @@ Method              PUT
 */
 app.put("/update/author/:id", (request, response) => {
     database.authors.forEach((author) => {
-        if(author.id === parseInt(request.params.id)){
+        if (author.id === parseInt(request.params.id)) {
             author.name = request.body.authorName;
             return;
         }
-    }); 
+    });
 
-    return response.json({authors: database.authors});
+    return response.json({ authors: database.authors });
 });
 
 /* 
@@ -288,13 +288,13 @@ Method              PUT
 */
 app.put("/update/publication/:id", (request, response) => {
     database.publications.forEach((publication) => {
-        if(publication.id === parseInt(request.params.id)){
+        if (publication.id === parseInt(request.params.id)) {
             publication.name = request.body.publicationName;
             return;
         }
-    }); 
+    });
 
-    return response.json({authors: database.publications});
+    return response.json({ authors: database.publications });
 });
 
 /* 
@@ -306,21 +306,109 @@ Method              PUT
 */
 app.put("/update/publication/book/:isbn", (request, response) => {
     database.publications.forEach((publication) => {
-        if(publication.id === request.body.pubID){
+        if (publication.id === request.body.pubID) {
             publication.books.push(request.params.isbn);
             return;
         }
     });
 
     database.books.forEach((book) => {
-        if(book.ISBN === request.params.isbn){
+        if (book.ISBN === request.params.isbn) {
             book.publication = request.body.pubID;
             return;
         }
     });
 
-    return response.json({publications: database.publications, books:database.books, message: "publication books updated"});
+    return response.json({ publications: database.publications, books: database.books, message: "publication books updated" });
 });
 
+/* 
+Route               /delete/book/
+Description         delete a book
+Access              PUBLIC
+Parameters          isbn
+Method              DELETE
+*/
+app.delete("/delete/book/:isbn", (request, response) => {
+    const updatedBookDatabase = database.books.filter((book) => book.ISBN !== request.params.isbn);
+
+    database.books = updatedBookDatabase;
+
+    return response.json({ books: database.books });
+});
+
+/* 
+Route               /delete/book/author
+Description         delete a author from a book
+Access              PUBLIC
+Parameters          isbn, authorID
+Method              DELETE
+*/
+app.delete("/delete/book/author/:isbn/:authorID", (request, response) => {
+    database.books.forEach((book) => {
+        if (book.ISBN === request.params.isbn) {
+            book.authors = book.authors.filter((author) => author !== parseInt(request.params.authorID));
+            return;
+        }
+    });
+
+    database.authors.forEach((author) => {
+        if (author.id == parseInt(request.params.authorID)) {
+            author.books = author.books.filter((book) => book === request.params.isbn);
+            return;
+        }
+    });
+
+    return response.json({ books: database.books, authors: database.authors });
+});
+
+/* 
+Route               /delete/author/
+Description         delete a author 
+Access              PUBLIC
+Parameters          id
+Method              DELETE
+*/
+app.delete("/delete/author/:id", (request, response) => {
+    database.authors = database.authors.filter((author) => author.id !== parseInt(request.params.id));
+
+    return response.json({ authors: database.authors });
+});
+
+/* 
+Route               /delete/publication/
+Description         delete a publication 
+Access              PUBLIC
+Parameters          id
+Method              DELETE
+*/
+app.delete("/delete/publication/:id", (request, response) => {
+    database.publications = database.publications.filter((publication) => publication.id !== parseInt(request.params.id));
+
+    return response.json({ publications: database.publications });
+});
+
+/* 
+Route               /delete/publication/book/
+Description         delete a book from publication 
+Access              PUBLIC
+Parameters          id, isbn
+Method              DELETE
+*/
+app.delete("/delete/publication/book/:id/:isbn", (request, response) => {
+    database.publications.forEach((publication) => {
+        if(publication.id === parseInt(request.params.id)){
+            publication.books = publication.books.filter((book) => book !== request.params.isbn);
+        }
+    });
+
+    database.books.forEach((book) => {
+        if(book.isbn === request.params.isbn){
+            book.publication = 0;
+        }
+    });
+
+    return response.json({ books: database.books, publications: database.publications});
+})
 
 app.listen(3000, () => console.log("server running"));
