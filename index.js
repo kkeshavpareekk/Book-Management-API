@@ -1,5 +1,8 @@
+require("dotenv").config();
+
 // import the framework
 const express = require("express");
+const mongoose = require("mongoose");
 
 // Database
 const database = require("./database/index");
@@ -9,6 +12,10 @@ const app = express();
 
 //conifgurations
 app.use(express.json());
+
+//Establish database connection
+mongoose.connect(process.env.MONGO_URL)
+.then(() => console.log("connection established"));
 
 /* 
 Route               /
@@ -397,18 +404,18 @@ Method              DELETE
 */
 app.delete("/delete/publication/book/:id/:isbn", (request, response) => {
     database.publications.forEach((publication) => {
-        if(publication.id === parseInt(request.params.id)){
+        if (publication.id === parseInt(request.params.id)) {
             publication.books = publication.books.filter((book) => book !== request.params.isbn);
         }
     });
 
     database.books.forEach((book) => {
-        if(book.isbn === request.params.isbn){
+        if (book.isbn === request.params.isbn) {
             book.publication = 0;
         }
     });
 
-    return response.json({ books: database.books, publications: database.publications});
+    return response.json({ books: database.books, publications: database.publications });
 })
 
 app.listen(3000, () => console.log("server running"));
