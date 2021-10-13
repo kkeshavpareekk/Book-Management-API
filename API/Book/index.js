@@ -82,11 +82,17 @@ Parameters          NONE
 Method              POST
 */
 Router.post("/add/", async (request, response) => {
-    const { newBook } = request.body;
+    try {  
+        const { newBook } = request.body;
 
-    BookModel.create(newBook);
+        await BookModel.create(newBook);
 
-    return response.json({ books: newBook, message: "new book added" });
+        return response.json({ books: newBook, message: "new book added" });
+    } catch(error){
+        
+        return response.json({error: error.message});
+    }
+    
 });
 
 /* 
